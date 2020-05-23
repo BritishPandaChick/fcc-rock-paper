@@ -27,20 +27,35 @@ def threaded_client(conn, p , gameId):
 
     reply = ""
     while True:
-        data = conn.recv(4096).decode()
+        try:
+            data = conn.recv(4096).decode()
 
-        if gameId in games:
-            game = games[gameId]
+            if gameId in games:
+                game = games[gameId]
 
-            if not data:
-                break
-            else:
-                if data == "reset":
-
-                elif data != "get":
-
+                if not data:
+                    break
                 else:
+                    if data == "reset":
+                        game.reset()
+                    elif data != "get":
+                        game.play(p, data)
 
+                    reply = game
+                    conn.sendall(pickle.dumps(reply))
+            else:
+                break
+        except:
+            break
+
+    print("Lost connection")
+    try:
+        del games[gameId]
+        print("Closing game", gameId)
+    except:
+        pass
+    idCount -= 1
+    conn.close()
 
 while True:
     conn, addr = s.accept()
